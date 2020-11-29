@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <title>카택전</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,minium-scale=1.0,maxinum-scale=1.0,user-scalable=no" />
+
+        <link rel="stylesheet" href="/file/css/style.css"/>
+        <link rel="stylesheet" href="/login/joinus/joinus.css"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+        <script src="/file/script/jquery.js"></script>
+        <script src="/file/script/jquery-ui.js"></script>
+        <script src="/file/script/jquery-rotate.js"></script>
+        <script src="/file/script/jquery-boxshadow.js"></script>
+        <script src="/file/script/socket.io.js"></script>
+        
+        <script>            
+            $(document).ready(function(){
+                // POST
+                function post(path, params){
+                    var form = document.createElement("form");
+                    form.setAttribute("method", "post");
+                    form.setAttribute("action", path);
+                    for(var key in params) {
+                        var hiddenField = document.createElement("input");
+                        hiddenField.setAttribute("type", "hidden");
+                        hiddenField.setAttribute("name", key);
+                        hiddenField.setAttribute("value", params[key]);
+                        form.appendChild(hiddenField);
+                    }
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+                
+                // SOCKET 통신
+                var socket = io();
+                socket.emit('joinRoom', 'joinus');
+                socket.on('checkyourid', (msg) => {
+                    console.log(msg);
+                    if(userInfoChecking.checked_id == msg.id){
+                        if(msg.res == 'true') userInfoChecking.checked_res = 'true';
+                        else userInfoChecking.checked_res = 'false';
+                        Checking();
+                        console.log(userInfoChecking.checked_id, userInfoChecking.checked_res);
+                    }
+                });
+                
+                var userInfoChecking = {};
+                userInfoChecking.checked_id = '';
+                userInfoChecking.checked_res = 'none';
+                userInfoChecking.id = function(id){
+                    if(id.length < 5) return '길이가 너무 짧습니다';
+                    if(id.length > 15) return '깅이가 너무 깁니다';
+                    if(userInfoChecking.checked_id == id){
+                        if(userInfoChecking.checked_res == 'true') return 'ac';
+                        else if(userInfoChecking.checked_res == 'false') return '이미 사용중인 아이디'
+                        else return 'nm'
+                    }
+                    
+                    userInfoChecking.checked_id = id;
+                    userInfoChecking.checked_res = 'none';
+                    socket.emit('joinus', id);
+                    return 'nm';
+                }
+                userInfoChecking.pw = function(pw){
+                    if(pw.length < 5) return '길이가 너무 짧습니다';
+                    if(pw.length > 20) return '깅이가 너무 깁니다';
+                    return 'ac';
+                }
+                userInfoChecking.pwr = function(pw, pwr){
+                    if(userInfoChecking.pw(pw) != 'ac') return 'PASSWORD를 다시 확인해 주세요'
+                    if(pw!=pwr) return 'PASSWORD와 일치하지 않습니다'
+                    return 'ac';
+                }
+                userInfoChecking.name = function(name){
+                    if(name.length < 2) return '길이가 너무 짧습니다';
+                    if(name.length > 10) return '깅이가 너무 깁니다';
+                    return 'ac';
+                }
+                
+                var trans = {};
+                trans.color_green = 'green';
+                trans.color_gray = 'rgb(200,200,200)';
+                trans.color_red = 'red';
+                trans.normal = function(t1, box, t2){
+                    //$('#'+t1).stop().animate({ color: trans.color_gray }, 100);
+                    $('#'+box).stop().animate({ borderColor: trans.color_gray }, 100);
+                    $('#'+t2).html('');
+                }
+                trans.green = function(t1, box, t2, txt){
+                    //$('#'+t1).stop().animate({ color: trans.color_green }, 100);
+                    $('#'+box).stop().animate({ borderColor: trans.color_green }, 100);
+                    $('#'+t2).html('');
+                }
+                trans.red = function(t1, box, t2, txt){
+                    //$('#'+t1).stop().animate({ color: trans.color_red }, 100);
+                    $('#'+box).stop().animate({ borderColor: trans.color_red }, 100);
+                    $('#'+t2).stop().animate({ color: trans.color_red }, 100);
+                    $('#'+t2).html(txt);
+                }
+                
+                function Checking(){
+                    var id = document.getElementById("input_id").value;
+                    var pw = document.getElementById("input_pw").value;
+                    var pwr = document.getElementById("input_pwr").value;
+                    var name = document.getElementById("input_name").value;
+                    
+                    if(id=='') trans.normal('txt1', 'box1', 'msg1');
+                    else if(userInfoChecking.id(id) == 'nm') trans.normal('txt1', 'box1', 'msg1');
+                    else if(userInfoChecking.id(id) != 'ac') trans.red('txt1', 'box1', 'msg1', userInfoChecking.id(id));
+                    else{
+                        trans.green('txt1', 'box1', 'msg1', '');
+                        $('#msg1').stop().animate({ color: trans.color_green }, 100);
+                        $('#msg1').html('사용가능한 아이디');
+                    }
+                    
+                    if(pw=='') trans.normal('txt2', 'box2', 'msg2');
+                    else if(userInfoChecking.pw(pw) != 'ac') trans.red('txt2', 'box2', 'msg2', userInfoChecking.pw(pw));
+                    else trans.green('txt2', 'box2', 'msg2', '');
+                    
+                    if(pwr=='') trans.normal('txt3', 'box3', 'msg3');
+                    else if(userInfoChecking.pwr(pw, pwr) != 'ac') trans.red('txt3', 'box3', 'msg3', userInfoChecking.pwr(pw, pwr));
+                    else trans.green('txt3', 'box3', 'msg3', '');
+                    
+                    if(name=='') trans.normal('txt4', 'box4', 'msg4');
+                    else if(userInfoChecking.name(name) != 'ac') trans.red('txt4', 'box4', 'msg4', userInfoChecking.name(name));
+                    else trans.green('txt4', 'box4', 'msg4', '');
+                }
+                
+                $('#input_id, #input_pw, #input_pwr, #input_name').keyup(Checking);
+                
+                /* HOVER */
+                $('#btn_next').hover(function(){
+                    $(this).stop().animate({ backgroundColor: 'rgb(230,180,0)' }, 100);
+                }, function(){
+                    $(this).stop().animate({ backgroundColor: 'rgb(250,200,20)' }, 100);                
+                });
+                
+                /* CLICK */
+                $('#btn_next').click(function(){
+                    var id = document.getElementById("input_id").value;
+                    var pw = document.getElementById("input_pw").value;
+                    var pwr = document.getElementById("input_pwr").value;
+                    var name = document.getElementById("input_name").value;
+                    
+                    if(userInfoChecking.id(id) == 'ac' && userInfoChecking.pw(pw) == 'ac' && userInfoChecking.pwr(pw, pwr) == 'ac' && userInfoChecking.name(name) == 'ac'){
+                        post('/login/joinus/post',{ id: id, pw: pw, name: name });
+                    }
+                    else{
+                        $("#btn_next").effect("bounce", "slow");
+                    }
+                });
+            });
+        </script>
+    </head>
+
+    <body>
+        <div id="lay0" class="ND">회원가입</div>
+        <div id="lay1" class="ND">
+            <div id="txt1" class="T1">ID</div>
+            <div id="box1" class="INPUT_BOX"><input id="input_id" class="T2" type="text"/></div>
+            <p id="msg1" class="T3"></p>
+            
+            <div id="txt2" class="T1">PASSWORD</div>
+            <div id="box2" class="INPUT_BOX"><input id="input_pw" class="T2 PASSWORD" type="password"/></div>
+            <p id="msg2" class="T3"></p>
+            
+            <div id="txt3" class="T1">PASSWORD 재확인</div>
+            <div id="box3" class="INPUT_BOX"><input id="input_pwr" class="T2 PASSWORD" type="password"/></div>
+            <p id="msg3" class="T3"></p>
+            
+            <div id="txt4" class="T1">닉네임</div>
+            <div id="box4" class="INPUT_BOX"><input id="input_name" class="T2" type="text"/></div>
+            <p id="msg4" class="T3"></p>
+            
+            <button id="btn_next" class="BTNC">회원가입</button>
+        </div>
+    </body>
+</html>

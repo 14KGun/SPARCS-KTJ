@@ -1,0 +1,51 @@
+#lay0{
+    margin-top: 140px;
+    margin-bottom: 20px;
+    font-size: 30px; font-weight: 700;
+}
+
+#lay1{
+    width: 100%; height: 480px;
+    position: relative;
+}
+
+#box1{
+    float: left;
+}
+#box2{
+    float: right;
+}
+.BOX{
+    width: 45%;
+    position: relative; overflow: hidden;
+    border-radius: 10px;
+    background: white;
+    border: 1px solid rgb(220,220,220);
+}
+
+.BOX_TOP{
+    height: 50px; width: 100%;
+    background: rgb(255,220,30);
+}
+.BOX_TOP_TXT{
+    height: 50px; line-height: 50px;
+    padding-left: 20px;
+    font-size: 18px; font-weight: 500; color: white;
+}
+.BOX_MAIN{
+    height: 400px; width: 100%;
+    background: white;
+    overflow-x: hidden; overflow-y: auto;
+}
+.BOX_ITEM{
+    height: 50px; width: 100%; line-height: 50px;
+    font-size: 16px; font-weight: 300; color: black;
+}
+
+#btn_next{
+    padding-left: 15px; padding-right: 15px; padding-top: 3px; padding-bottom: 3px;
+    border-radius: 10px;
+    font-size: 19px; font-weight: 500; color: white;
+    background: rgb(250,200,20);
+    float: right;
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <title>카택전</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,minium-scale=1.0,maxinum-scale=1.0,user-scalable=no" />
+
+        <link rel="stylesheet" href="/file/css/style.css"/>
+        <link rel="stylesheet" href="/chat/chat.css"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+        <script src="/file/script/jquery.js"></script>
+        <script src="/file/script/jquery-ui.js"></script>
+        <script src="/file/script/jquery-rotate.js"></script>
+        <script src="/file/script/jquery-boxshadow.js"></script>
+        <script src="/file/script/socket.io.js"></script>
+        
+        <script>
+            var Send = function(){}
+            
+            $(document).ready(function(){
+                /* 반응형 WEB */
+                function Message_push(msg){
+                    console.log(msg);
+                    msg.msg = msg.msg.split('&amp;br;').join('<br />');
+                    while(msg.msg.startsWith('<br />')) msg.msg = msg.msg.substr(6);
+                    while(msg.msg.endsWith('<br />')) msg.msg = msg.msg.substr(0, msg.msg.length-6);
+                    if(msg.msg=='') return;
+                    
+                    if(msg.name == '<%=myname%>'){
+                        var msgTOhtml = '<div class="ITEM ME" data-type="msg" data-name="'+msg.name+'"><span class="CHATBOX ">'+msg.msg+'</span></div>';
+                        $('#lay1').html($('#lay1').html()+msgTOhtml);
+                    }
+                    else{
+                        if($('#lay1 div:last').data('name')!=msg.name){
+                            var nameTohtml = '<div class="ITEM NAME" data-type="name"><span>'+msg.name+'</span></div>';
+                            $('#lay1').html($('#lay1').html()+nameTohtml);
+                        }
+
+                        var msgTOhtml = '<div class="ITEM OTHER" data-type="msg" data-name="'+msg.name+'"><span class="CHATBOX ">'+msg.msg+'</span></div>';
+                        $('#lay1').html($('#lay1').html()+msgTOhtml);
+                    }
+                    document.getElementById("lay1").scrollTop = document.getElementById("lay1").scrollHeight;
+                }
+                function reposition(){
+                    var body_width = document.body.clientWidth;
+                    var body_height = window.innerHeight;
+                    
+                    $('#lay2_input').height(1);
+                    var input_height = $('#lay2_input').prop('scrollHeight');
+                    $('#lay2_input').height(input_height+'px');
+                    
+                    var lay2_height = $('#lay2').height();
+                    var lay1_height = body_height - 72 - lay2_height - 20;
+                    $('#lay1').height(lay1_height+'px');
+                }
+                reposition();
+                $(window).resize(reposition);
+                <%for(var i=0; i<msg.length; i++){%>Message_push({ name:'<%=msg[i].name%>', msg:'<%=msg[i].msg.split('\n').join('&br;')%>' });<%}%>
+                
+                /* SOCKET IO */
+                var socket = io();
+                socket.emit('joinRoom', '<%=room%>');
+                socket.on('receiveMsg', function(msg){
+                    try{ msg.msg=msg.msg.split('\n').join('&amp;br;'); Message_push(msg); } catch(error){}
+                });
+                
+                /* HOVER */
+                $('#lay_btn').hover(function(){
+                    $(this).stop().animate({ backgroundColor: 'rgb(230,180,0)' }, 100);
+                }, function(){
+                    $(this).stop().animate({ backgroundColor: 'rgb(250,200,20)' }, 100);                
+                });
+                
+                /* CLICK */
+                Send = function(){
+                    var msg = document.getElementById("lay2_input").value;
+                    if(msg!=''){ socket.emit('sendMsg', { room: '<%=room%>', name: '<%=myname%>' , msg: msg }); }
+                    $("#lay2_input").val('');
+                }
+                var shift_click = false;
+                $('#lay2_input').keydown(function(){
+                    var keycode = event.keyCode;
+                    if(keycode == 16) shift_click = true;
+                    reposition();
+                });
+                $('#lay2_input').keyup(function(){
+                    var keycode = event.keyCode;
+                    if(keycode == 16) shift_click = false;
+                    if(keycode == 13 && shift_click == false) Send();
+                    reposition();
+                });
+            });
+            
+        </script>
+    </head>
+
+    <body>
+        <div id="lay0"></div>
+        <div id="lay1"></div>
+        <div id="lay2">
+            <div id="lay2_main"><textarea id="lay2_input"></textarea></div>
+            <button id="lay_btn" class="BTNC" onclick="Send()"><img src="/chat/img_send.png"></button>
+        </div>
+        
+        <%-header_html%>
+    </body>
+</html>
