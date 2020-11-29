@@ -110,7 +110,8 @@ login.name = function(req){ return req.session.user.name; }
 var header_encoder = {};
 header_encoder.ejs = fs.readFileSync('./support/header.ejs', 'utf8');
 header_encoder.get = function(req){
-    return header_encoder.ejs;
+    if(login.check(req)) return ejs.render(header_encoder.ejs, { login: true, id: login.id(req) });
+    else return ejs.render(header_encoder.ejs, { login: false, id: 'none' });
 }
 
 // 예약가능한 날짜 및 시각
@@ -150,7 +151,7 @@ function trans_roomcode(date, s, e){
     
     var y = date.getFullYear(), m = date.getMonth(), d = date.getDate(), h = date.getHours(), t = date.getMinutes();
     var code = y+'/'+m+'/'+d+'/'+h+'/'+t+'/'+s+'>'+e;
-    console.log(code);
+    //console.log(code);
     
     return code;
 }
@@ -183,6 +184,10 @@ function route_login(res, req, msg, id, pw){
 }
 router.route('/login').get(function(req, res){
     route_login(res, req, '', '', '');
+});
+router.route('/logout').get(function(req, res){
+    login.out(req);
+    res.redirect('/');
 });
 router.route('/login/try-login').post(function(req, res){
     var p_id = req.body.id || req.query.id || '';

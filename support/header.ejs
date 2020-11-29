@@ -11,7 +11,8 @@
         <button class="HEADER_BTN_A BTNC">마이페이지</button>
         <div class="HEADER_BTN_B" id="header_btn_2_btm"></div>
     </div>
-    <button id="header_login" class="BTNC">로그인</button>
+    <button id="header_login" class="BTNC" <%if(login){%> style="display:none;"<%}%>>로그인</button>
+    <button id="header_logout" class="BTNC" <%if(login==false){%> style="display:none;"<%}%>>로그아웃(<%=id%>)</button>
 </div>
 
 <style>
@@ -53,7 +54,7 @@
         margin: auto;
         background: rgb(250,200,20);
     }
-    #header_login{
+    #header_login, #header_logout{
         float: right;
         height: 100%; line-height: 70px;
         padding-right: 20px; padding-left: 20px;
@@ -69,7 +70,7 @@
         }, function(){
             $(this).stop().animate({ backgroundColor: 'rgb(250,200,20)' }, 100);                
         });
-        $('#header_login').hover(function(){
+        $('#header_login, #header_logout').hover(function(){
             $(this).stop().animate({ backgroundColor: 'rgba(150,150,150,0.1)' }, 100);
         }, function(){
             $(this).stop().animate({ backgroundColor: 'rgba(150,150,150,0)' }, 100);                
@@ -97,6 +98,9 @@
         });
         $('#header_login').click(function(){
             location.href='/login'
+        });
+        $('#header_logout').click(function(){
+            location.href='/logout'
         });
     });
 </script>
