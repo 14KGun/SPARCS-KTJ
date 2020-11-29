@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <title>카택전</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,minium-scale=1.0,maxinum-scale=1.0,user-scalable=no" />
+
+        <link rel="stylesheet" href="/file/css/style.css"/>
+        <link rel="stylesheet" href="/reservation/reservation.css"/>
+        <link rel="stylesheet" href="/reservation/reservation2.css"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+        <script src="/file/script/jquery.js"></script>
+        <script src="/file/script/jquery-ui.js"></script>
+        <script src="/file/script/jquery-rotate.js"></script>
+        <script src="/file/script/jquery-boxshadow.js"></script>
+        
+        <script>
+            var btnClick = function(x,y){}
+            
+            $(document).ready(function(){
+                function post(path, params){
+                    var form = document.createElement("form");
+                    form.setAttribute("method", "post");
+                    form.setAttribute("action", path);
+                    for(var key in params) {
+                        var hiddenField = document.createElement("input");
+                        hiddenField.setAttribute("type", "hidden");
+                        hiddenField.setAttribute("name", key);
+                        hiddenField.setAttribute("value", params[key]);
+                        form.appendChild(hiddenField);
+                    }
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+                
+                var point_i = -1, point_j = -1;
+                var stime = '<%=pdate%>';
+                
+                btnClick = function(x,y){
+                    if(x=='left'){
+                        if(y!=-1){ 
+                            $('#option_'+x+point_i).data('cnt',$('#option_'+x+point_i).data('cnt')-1);
+                            btnHover($('#option_'+x+point_i));
+                        }
+                        $('#option_'+x+y).data('cnt',$('#option_'+x+y).data('cnt')+1);
+                        btnHover($('#option_'+x+y));
+                        point_i = y;
+                    }
+                    if(x=='right'){
+                        if(y!=-1){ 
+                            $('#option_'+x+point_j).data('cnt',$('#option_'+x+point_j).data('cnt')-1);
+                            btnHover($('#option_'+x+point_j));
+                        }
+                        $('#option_'+x+y).data('cnt',$('#option_'+x+y).data('cnt')+1);
+                        btnHover($('#option_'+x+y));
+                        point_j = y;
+                    }
+                }
+                function btnHover(item){
+                    var cnt = item.data('cnt');
+                    if(cnt > 0) item.stop().animate({ backgroundColor: 'rgba(100,100,100,0.1)' }, 100);
+                    else item.stop().animate({ backgroundColor: 'rgba(100,100,100,0)' }, 100);  
+                }
+                
+                /* HOVER */
+                $('#btn_next').hover(function(){
+                    $(this).stop().animate({ backgroundColor: 'rgb(230,180,0)' }, 100);
+                }, function(){
+                    $(this).stop().animate({ backgroundColor: 'rgb(250,200,20)' }, 100);                
+                });
+                $('.BOX_ITEM').hover(function(){
+                    var cnt = $(this).data('cnt');
+                    $(this).data('cnt',cnt+1);
+                    btnHover($(this));
+                }, function(){
+                    var cnt = $(this).data('cnt');
+                    $(this).data('cnt',cnt-1);
+                    btnHover($(this));
+                });
+                
+                /* CLICK */
+                $('#btn_next').click(function(){
+                    if(point_i!=-1 && point_j!=-1){
+                        if(point_i == point_j){ alert('출발 장소와 도착 장소가 같을 수는 없습니다.'); return; }
+                        post('/reservation-try', { start: point_i, end: point_j, time: stime });
+                    }
+                });
+            });
+            
+        </script>
+    </head>
+
+    <body>
+        <div class="main_frame ND">
+            <div id="lay0">예약 출발 및 도착</div>
+            <div id="lay1">
+                <div id="box1" class="BOX">
+                    <div class="BOX_TOP"><div class="BOX_TOP_TXT">출발</div></div>
+                    <div class="BOX_MAIN">
+                        <button id="option_left0" class="BOX_ITEM BTNC" onclick="btnClick('left',0)" data-cnt="0">카이스트 택시 승강장</button>
+                        <button id="option_left1" class="BOX_ITEM BTNC" onclick="btnClick('left',1)" data-cnt="0">대전역</button>
+                    </div>
+                </div>
+                <div id="box2" class="BOX">
+                    <div class="BOX_TOP"><div class="BOX_TOP_TXT">도착</div></div>
+                    <div class="BOX_MAIN">
+                        <button id="option_right0" class="BOX_ITEM BTNC" onclick="btnClick('right',0)" data-cnt="0">카이스트 택시 승강장</button>
+                        <button id="option_right1" class="BOX_ITEM BTNC" onclick="btnClick('right',1)" data-cnt="0">대전역</button>
+                    </div>
+                </div>
+            </div>
+            <div id="btn_next" class="BTNC">예약 확정</div>
+        </div>
+        
+        <%-header_html%>
+    </body>
+</html>
